@@ -23,6 +23,7 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     private boolean pressedNext, pressedPrev;
     private int currentTimeInMilliseconds;
     private Thread playbackSliderThread;
+    private Thread playerThread;  // Added field to manage the playback thread
 
     // Constructor
     public MusicPlayer(MainFrame mainFrame) {
@@ -58,6 +59,9 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     public void playCurrentSong() {
         try {
             if (currentSong != null) {
+                // Log to ensure the method is not called multiple times
+                System.out.println("Attempting to play song: " + currentSong.getFile());
+
                 FileInputStream fileInputStream = new FileInputStream(currentSong.getFile());
 
                 long skipBytes = (long) ((currentTimeInMilliseconds / (double) currentSong.getDurationInSeconds()) * currentSong.getFrameLength());
@@ -71,26 +75,37 @@ public class MusicPlayer extends PlaybackListener implements Functions {
 
                 fileInputStream.skip(skipBytes);
 
+                // Ensure previous player is stopped before creating a new one
+                if (advancedPlayer != null) {
+                    advancedPlayer.close();
+                }
+
                 advancedPlayer = new AdvancedPlayer(fileInputStream);
                 advancedPlayer.setPlayBackListener(this);
                 songFinished = false;
 
-                new Thread(() -> {
+                // Ensure only one thread is started
+                if (playerThread != null && playerThread.isAlive()) {
+                    playerThread.interrupt();
+                }
+
+                playerThread = new Thread(() -> {
                     try {
                         startPlaybackSliderThread();
                         advancedPlayer.play();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }).start();
+                });
+                playerThread.start();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
     public void loadPlaylist(File playlistFile) {
+        stopSong();  // Ensure any currently playing song is stopped
         playlist.clear();
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(playlistFile))) {
@@ -104,7 +119,8 @@ public class MusicPlayer extends PlaybackListener implements Functions {
         }
 
         if (!playlist.isEmpty()) {
-            loadSong(playlist.get(0));  // Load and play the first song
+            currentPlaylistIndex = 0;
+            loadSong(playlist.get(currentPlaylistIndex));  // Load and play the first song
             mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong);
         }
     }
@@ -147,6 +163,11 @@ public class MusicPlayer extends PlaybackListener implements Functions {
         // Stop the slider thread
         if (playbackSliderThread != null && playbackSliderThread.isAlive()) {
             playbackSliderThread.interrupt();
+        }
+
+        // Ensure the player thread is stopped
+        if (playerThread != null && playerThread.isAlive()) {
+            playerThread.interrupt();
         }
     }
 
@@ -197,17 +218,17 @@ public class MusicPlayer extends PlaybackListener implements Functions {
 
     @Override
     public void playbackStarted(PlaybackEvent evt) {
-        System.out.println("Playback Started");
+        System.out.println("Playback Started - " + evt.getFrame());
         songFinished = false;
     }
 
     @Override
     public void playbackFinished(PlaybackEvent evt) {
-        System.out.println("Playback Finished");
+        System.out.println("Playback Finished - " + evt.getFrame());
 
         if (isPaused) {
             currentTimeInMilliseconds += evt.getFrame();  // Update time with the last frame played
-        } else if (!pressedNext && !pressedPrev && songFinished) {
+        } else if (!pressedNext && !pressedPrev && !songFinished) {
             nextSong();
         }
     }
@@ -230,5 +251,4 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             e.printStackTrace();
         }
     }
-
 }

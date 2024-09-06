@@ -2,23 +2,11 @@ package View;
 
 import Model.MusicPlayer;
 import Model.Song;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-/*
-    * MainFrame je glavna klasa u aplikaciji koja predstavlja prozor aplikacije.
-    * U nju su smjestene sve komponente koje se koriste u aplikaciji.
-    * U njoj se nalazi ViewPanel, MusicPlayer, ToolBar i MenuBar.
-    * Koristi metode updateSongTitleAndArtist, updatePlaybackSlider, enablePauseButtonDisablePlayButton, setPlaybackSliderValue, loadPlaylist.
-    * Metoda updateSongTitleAndArtist se koristi za azuriranje naslova pjesme i izvodjaca.
-    * Metoda updatePlaybackSlider se koristi za azuriranje trake za pustanje pjesme.
-    * Metoda enablePauseButtonDisablePlayButton se koristi za omogucavanje dugmeta za pauziranje i onemogucavanje dugmeta za pustanje.
-    * Metoda setPlaybackSliderValue se koristi za postavljanje vrijednosti trake za pustanje pjesme.
-    * Metoda loadPlaylist se koristi za ucitavanje plejliste iz fajla.
-    * Takodjer imamo i gettere za ToolBar.
-    *
- */
 
 public class MainFrame extends JFrame {
 
@@ -29,8 +17,8 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         // Initialize components
-        musicPlayer = new MusicPlayer(this);
         viewPanel = new ViewPanel();
+        musicPlayer = new MusicPlayer(this);
         toolBar = new ToolBar(this, musicPlayer); // Toolbar instance
         menuBar = new MenuBar(this, musicPlayer, new JFileChooser());
 

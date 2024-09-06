@@ -6,18 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-/*
-    * Klasa koja predstavlja panel za prikaz pjesme.
-    * U njoj se nalaze labela za album art, naslov pjesme i izvodjaca.
-    * Koristi metode updateSongDetails i loadImage.
-    * Metoda updateSongDetails se koristi za azuriranje detalja pjesme.
-    * Metoda loadImage se koristi za ucitavanje slike.
-    *
-    * ImageIcon je ugradjena klasa koja predstavlja ikonu koja moze biti prikazana na ekranu.
-    * ImageIcon je podklasa klase Image koja se koristi za prikazivanje slika.
-    *
-    *
- */
+
 
 class ViewPanel extends JPanel {
 

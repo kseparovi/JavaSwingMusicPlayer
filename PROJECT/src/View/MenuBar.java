@@ -12,11 +12,11 @@ import java.io.File;
 
 
 /*
-    * Klasa koja predstavlja meni traku u aplikaciji.
-    * U njoj se nalaze opcije za ucitavanje pjesme i plejliste.
-    * Koristi metode createMenus.
-    * Metoda createMenus se koristi za kreiranje menija i dodavanje opcija za ucitavanje pjesme i plejliste.
-    * Takodjer koristi i akcije za ucitavanje pjesme i plejliste.
+ * Klasa koja predstavlja meni traku u aplikaciji.
+ * U njoj se nalaze opcije za ucitavanje pjesme i plejliste.
+ * Koristi metode createMenus.
+ * Metoda createMenus se koristi za kreiranje menija i dodavanje opcija za ucitavanje pjesme i plejliste.
+ * Takodjer koristi i akcije za ucitavanje pjesme i plejliste.
 
  */
 public class MenuBar extends JMenuBar {

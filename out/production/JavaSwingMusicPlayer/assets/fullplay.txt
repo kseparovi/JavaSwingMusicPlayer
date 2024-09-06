@@ -1,0 +1,5 @@
+C:\Users\Korisnik\Desktop\JavaSwingMusicPlayer\PROJECT\src\assets\01 - Fleetwood Mac - Rhiannon.mp3
+C:\Users\Korisnik\Desktop\JavaSwingMusicPlayer\PROJECT\src\assets\02 - Fleetwood Mac - Don't Stop.mp3
+C:\Users\Korisnik\Desktop\JavaSwingMusicPlayer\PROJECT\src\assets\03 - Fleetwood Mac - Go Your Own Way.mp3
+C:\Users\Korisnik\Desktop\JavaSwingMusicPlayer\PROJECT\src\assets\04 - Fleetwood Mac - Hold Me.mp3
+C:\Users\Korisnik\Desktop\JavaSwingMusicPlayer\PROJECT\src\assets\05 - Fleetwood Mac - Everywhere.mp3

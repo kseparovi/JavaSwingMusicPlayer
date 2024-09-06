@@ -11,14 +11,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
-
 /**
  * Ova klasa predstavlja dijalog za kreiranje plejliste.
  * Korisnik preko ovog dijaloga moze dodavati pjesme u plejlistu i sacuvati je u .txt fajl.
  * Klasa je bitna jer omogucava korisniku da kreira plejlistu i da je sacuva.
  */
-
-public class MusicPlaylistDialog extends JDialog  {
+public class MusicPlaylistDialog extends JDialog {
 
     private MainFrame mainFrame;
     private ArrayList<String> songPaths; // Store all of the paths to be written to a txt file (when we load a playlist)
@@ -59,14 +57,17 @@ public class MusicPlaylistDialog extends JDialog  {
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = jFileChooser.getSelectedFile();
                     if (selectedFile != null) {
-                        JLabel filePathLabel = new JLabel(selectedFile.getPath());
-                        filePathLabel.setFont(new Font("Dialog", Font.BOLD, 12));
-                        filePathLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                        String filePath = selectedFile.getPath();
+                        if (!songPaths.contains(filePath)) {  // Check for duplicates
+                            JLabel filePathLabel = new JLabel(filePath);
+                            filePathLabel.setFont(new Font("Dialog", Font.BOLD, 12));
+                            filePathLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-                        songPaths.add(filePathLabel.getText());
-                        songContainer.add(filePathLabel);
-                        songContainer.revalidate();
-                        songContainer.repaint();  // Repaint to update UI
+                            songPaths.add(filePath);
+                            songContainer.add(filePathLabel);
+                            songContainer.revalidate();
+                            songContainer.repaint();  // Repaint to update UI
+                        }
                     }
                 }
             }
@@ -114,5 +115,4 @@ public class MusicPlaylistDialog extends JDialog  {
         });
         add(savePlaylistButton);
     }
-
 }
