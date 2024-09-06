@@ -60,8 +60,15 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             if (currentSong != null) {
                 FileInputStream fileInputStream = new FileInputStream(currentSong.getFile());
 
-                // Skip bytes to continue playback from the current time position
-                long skipBytes = (long) (currentSong.getFrameLength() * currentTimeInMilliseconds / currentSong.getDurationInSeconds());
+                long skipBytes = (long) ((currentTimeInMilliseconds / (double) currentSong.getDurationInSeconds()) * currentSong.getFrameLength());
+
+                // Ensure skipBytes is within valid range
+                if (skipBytes < 0) {
+                    skipBytes = 0;
+                } else if (skipBytes > fileInputStream.available()) {
+                    skipBytes = fileInputStream.available();
+                }
+
                 fileInputStream.skip(skipBytes);
 
                 advancedPlayer = new AdvancedPlayer(fileInputStream);
@@ -81,6 +88,7 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             e.printStackTrace();
         }
     }
+
 
     public void loadPlaylist(File playlistFile) {
         playlist.clear();
@@ -210,12 +218,7 @@ public class MusicPlayer extends PlaybackListener implements Functions {
                 stopSong();  // Stop current playback
 
                 // Calculate the new time position in milliseconds
-                int newTimeInMilliseconds = seconds * 1000;
-
-                // Ensure that the time position does not exceed the song duration
-                if (newTimeInMilliseconds > currentSong.getDurationInSeconds() * 1000) {
-                    newTimeInMilliseconds = currentSong.getDurationInSeconds() * 1000;
-                }
+                int newTimeInMilliseconds = Math.min(seconds * 1000, currentSong.getDurationInSeconds() * 1000);
 
                 // Update the current time
                 setCurrentTimeInMilliseconds(newTimeInMilliseconds);
@@ -227,4 +230,5 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             e.printStackTrace();
         }
     }
+
 }
