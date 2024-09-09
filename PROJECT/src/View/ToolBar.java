@@ -17,8 +17,6 @@ public class ToolBar extends JToolBar {
     private JButton nextButton;
     private JButton previousButton;
     private JSlider playbackSlider;
-    private JLabel songTitle;
-    private JLabel songArtist;
     private Timer playbackTimer;
 
     private final Color TEXT_COLOR = Color.WHITE;
@@ -32,22 +30,6 @@ public class ToolBar extends JToolBar {
         setFloatable(false);
         setBackground(new Color(0, 0, 25));
         setLayout(new BorderLayout());
-
-        // Initialize song title and artist labels
-        songTitle = new JLabel();
-        songArtist = new JLabel();
-        songTitle.setForeground(TEXT_COLOR);
-        songArtist.setForeground(TEXT_COLOR);
-        songTitle.setFont(new Font("Dialog", Font.BOLD, 18));
-        songArtist.setFont(new Font("Dialog", Font.PLAIN, 16));
-
-        // Create a panel for song title and artist
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1));
-        titlePanel.add(songTitle);
-        titlePanel.add(songArtist);
-
-        // Add title panel to the top of the toolbar
-        add(titlePanel, BorderLayout.NORTH);
 
         // Create buttons with icons
         playButton = createButton("PROJECT/src/assets/play.png");
@@ -139,11 +121,6 @@ public class ToolBar extends JToolBar {
 
     public void setPlaybackSliderValue(int seconds) {
         playbackSlider.setValue(seconds);
-    }
-
-    public void updateSongTitleAndArtist(Song song) {
-        songTitle.setText(song.getSongTitle());
-        songArtist.setText(song.getSongArtist());
     }
 
     public void updatePlaybackSlider(Song song) {
