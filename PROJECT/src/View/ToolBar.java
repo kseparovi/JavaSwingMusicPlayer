@@ -18,9 +18,7 @@ public class ToolBar extends JToolBar {
     private JButton previousButton;
     private JSlider playbackSlider;
     private Timer playbackTimer;
-
     private final Color TEXT_COLOR = Color.WHITE;
-
 
     // Constructor
     public ToolBar(MainFrame mainFrame, MusicPlayer musicPlayer) {
@@ -79,6 +77,12 @@ public class ToolBar extends JToolBar {
         enablePlayButtonDisablePauseButton();
     }
 
+    // Getters and Setters
+    public void setPlaybackSliderValue(int seconds) {
+        playbackSlider.setValue(seconds);
+    }
+
+    // Methods
     private JButton createButton(String iconPath) {
         JButton button = new JButton(new ImageIcon(iconPath));
         button.setContentAreaFilled(false);
@@ -117,10 +121,6 @@ public class ToolBar extends JToolBar {
         });
 
         add(playbackSlider, BorderLayout.CENTER);
-    }
-
-    public void setPlaybackSliderValue(int seconds) {
-        playbackSlider.setValue(seconds);
     }
 
     public void updatePlaybackSlider(Song song) {
@@ -171,5 +171,4 @@ public class ToolBar extends JToolBar {
             playbackTimer.stop();
         }
     }
-
 }

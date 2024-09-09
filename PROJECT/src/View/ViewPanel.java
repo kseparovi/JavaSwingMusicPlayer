@@ -48,16 +48,18 @@ class ViewPanel extends JPanel {
         add(artistLabel);
     }
 
+    //Methods
+
     public void updateSongDetails(String artist, String title, String albumArtPath) {
         songTitleLabel.setText(title != null && !title.isEmpty() ? title : "Unknown Title");
         artistLabel.setText(artist != null && !artist.isEmpty() ? artist : "Unknown Artist");
 
         // Update album art
         ImageIcon albumArtIcon;
-        if (albumArtPath != null && !albumArtPath.isEmpty()) {
-            albumArtIcon = new ImageIcon(albumArtPath);
+        if (albumArtPath != null && !albumArtPath.isEmpty()) { // If album art path is not empty
+            albumArtIcon = new ImageIcon(albumArtPath); // Load album art from file
         } else {
-            albumArtIcon = defaultAlbumArt;
+            albumArtIcon = defaultAlbumArt; // Use default album art
         }
 
         if (albumArtIcon != null) {

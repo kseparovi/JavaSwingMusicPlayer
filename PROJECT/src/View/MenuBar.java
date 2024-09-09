@@ -33,6 +33,18 @@ public class MenuBar extends JMenuBar {
         createMenus();
     }
 
+    /**
+     * Metoda koja kreira menije i dodaje opcije za ucitavanje pjesme i plejliste.
+     * Koristi akcije za ucitavanje pjesme i plejliste.
+     * Ukoliko je korisnik odabrao pjesmu, pjesma se ucitava i prikazuje u aplikaciji.
+     * Ukoliko je korisnik odabrao plejlistu, plejlista se ucitava i prikazuje u aplikaciji.
+     * Ukoliko korisnik nije odabrao nista, nista se ne desava.
+     *
+     * Koristi se JFileChooser za odabir fajla
+     * ActionListener se koristi za akcije ucitavanja pjesme i plejliste i za prikazivanje pjesme u aplikaciji.
+     *
+     * Povezana je sa MusicPlaylistDialog klasom na nacin da korisnik moze kreirati plejlistu.
+     */
     private void createMenus() {
         // Song menu
         JMenu songMenu = new JMenu("Song");
@@ -43,7 +55,7 @@ public class MenuBar extends JMenuBar {
         loadSong.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                jFileChooser.setFileFilter(new FileNameExtensionFilter("MP3 Files", "mp3"));
+                jFileChooser.setFileFilter(new FileNameExtensionFilter("MP3", "mp3"));
                 jFileChooser.setCurrentDirectory(new File("PROJECT/src/assets"));
                 int result = jFileChooser.showOpenDialog(mainFrame);
                 File selectedFile = jFileChooser.getSelectedFile();

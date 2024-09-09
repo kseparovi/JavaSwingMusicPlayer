@@ -17,9 +17,9 @@ import java.util.ArrayList;
 public class MusicPlayer extends PlaybackListener implements Functions {
 
     // Fields
-    private static final Object playSignal = new Object();
+    private static final Object playSignal = new Object(); // Object used for synchronization
     private MainFrame mainFrame;
-    private Song currentSong;
+    private Song currentSong;  // The currently playing song
     private ArrayList<Song> playlist;
     private int currentPlaylistIndex;
     private AdvancedPlayer advancedPlayer;
@@ -29,6 +29,8 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     private int currentTimeInMilliseconds;
     private Thread playbackSliderThread;
     private Thread playerThread;
+
+    //postavili smo dva Threada koja ce se koristiti za azuriranje slajdera za reprodukciju i za pokretanje pjesme
 
     // Constructor
     public MusicPlayer(MainFrame mainFrame) {
@@ -42,91 +44,14 @@ public class MusicPlayer extends PlaybackListener implements Functions {
         return currentSong;
     }
 
-    public void setCurrentTimeInMilliseconds(int timeInMilliseconds) {
-        this.currentTimeInMilliseconds = timeInMilliseconds;
-    }
-
     public int getPlaybackPositionInSeconds() {
         return currentTimeInMilliseconds / 1000;
     }
 
-    // Methods
-    public void loadSong(Song song) {
-        stopSong();
-        currentSong = song;
-        if (currentSong != null) {
-            currentTimeInMilliseconds = 0;
-            mainFrame.getViewPanel().setPlaybackSliderValue(0);
-            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong); // Update song title and artist
-            playCurrentSong();
-        }
+    public void setCurrentTimeInMilliseconds(int timeInMilliseconds) {
+        this.currentTimeInMilliseconds = timeInMilliseconds;
     }
 
-    public void playCurrentSong() {
-        try {
-            if (currentSong != null) {
-                // Guard to check if the player is already playing
-                if (playerThread != null && playerThread.isAlive()) {
-                    playerThread.interrupt();  // Interrupt the current player thread
-                }
-
-                FileInputStream fileInputStream = new FileInputStream(currentSong.getFile());
-
-                long skipBytes = (long) ((currentTimeInMilliseconds / (double) currentSong.getDurationInSeconds()) * currentSong.getFrameLength());
-
-                // Ensure skipBytes is within a valid range
-                if (skipBytes < 0) {
-                    skipBytes = 0;
-                } else if (skipBytes > fileInputStream.available()) {
-                    skipBytes = fileInputStream.available();
-                }
-
-                fileInputStream.skip(skipBytes);
-
-                // Ensure previous player is stopped before creating a new one
-                if (advancedPlayer != null) {
-                    advancedPlayer.close();
-                }
-
-                advancedPlayer = new AdvancedPlayer(fileInputStream);
-                advancedPlayer.setPlayBackListener(this);
-                songFinished = false;
-
-                playerThread = new Thread(() -> {
-                    try {
-                        startPlaybackSliderThread();
-                        advancedPlayer.play();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-                playerThread.start();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void loadPlaylist(File playlistFile) {
-        stopSong();  // Ensure any currently playing song is stopped
-        playlist.clear();
-
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(playlistFile))) {
-            String songPath;
-            while ((songPath = bufferedReader.readLine()) != null) {
-                Song song = new Song(songPath);
-                playlist.add(song);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (!playlist.isEmpty()) {
-            currentPlaylistIndex = 0;
-            loadSong(playlist.get(currentPlaylistIndex));  // Load and play the first song
-            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong);
-        }
-    }
 
     @Override
     public void playSong() {
@@ -194,34 +119,9 @@ public class MusicPlayer extends PlaybackListener implements Functions {
         pressedPrev = false;
     }
 
-    private void startPlaybackSliderThread() {
-        if (playbackSliderThread != null && playbackSliderThread.isAlive()) {
-            playbackSliderThread.interrupt();
-        }
 
-        playbackSliderThread = new Thread(() -> {
-            while (!isPaused && !songFinished && !pressedNext && !pressedPrev) {
-                synchronized (playSignal) {
-                    try {
-                        // Update the current time in milliseconds
-                        currentTimeInMilliseconds += 1000;
 
-                        // Update the slider value on the UI thread
-                        SwingUtilities.invokeLater(() -> mainFrame.getToolBar().setPlaybackSliderValue(getPlaybackPositionInSeconds()));
-
-                        // Sleep for 1 second
-                        playSignal.wait(1000);
-                    } catch (InterruptedException e) {
-                        return;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.println("Error updating playback slider");
-                    }
-                }
-            }
-        });
-        playbackSliderThread.start();
-    }
+    //method overrides from PlaybackListener
 
     @Override
     public void playbackStarted(PlaybackEvent evt) {
@@ -235,9 +135,147 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             // Automatically play the next song if not paused or if next/prev buttons are not pressed
             nextSong();
         } else if (isPaused) {
-            currentTimeInMilliseconds += evt.getFrame();
+            currentTimeInMilliseconds += evt.getFrame(); //ako je pauzirano vrijeme se povecava za vrijeme frejma
         }
     }
+
+
+
+
+    //*****************************************************************************************************************
+
+    // Methods
+
+    public void loadSong(Song song) {
+        stopSong();
+        currentSong = song;
+        if (currentSong != null) {
+            currentTimeInMilliseconds = 0;
+            mainFrame.getToolBar().setPlaybackSliderValue(0); // Update the slider value in the toolbar
+            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong); // Update song title and artist
+            playCurrentSong();
+        }
+    }
+
+    public void playCurrentSong() {
+        try {
+            if (currentSong != null) {
+                // Guard to check if the player is already playing
+                if (playerThread != null && playerThread.isAlive()) {
+                    playerThread.interrupt();  // Interrupt the current player thread
+                }
+
+                FileInputStream fileInputStream = new FileInputStream(currentSong.getFile()); //Serialize the file to bytes
+
+                long skipBytes = (long) ((currentTimeInMilliseconds / (double) currentSong.getDurationInSeconds()) * currentSong.getFrameLength());
+                //trenutno vrijeme u milisekundama podijeljeno sa ukupnim trajanjem pjesme u sekundama pomnozeno sa ukupnim brojem frejmova - dobijemo trenutni broj frejmova koji treba preskociti
+                //treba ih preskociti jer je pjesma vec bila pokrenuta i zelimo da se nastavi od trenutka gdje je stala
+
+                // Ensure skipBytes is within a valid range
+                if (skipBytes < 0) {
+                    skipBytes = 0;
+                } else if (skipBytes > fileInputStream.available()) {
+                    skipBytes = fileInputStream.available();
+                }
+
+                fileInputStream.skip(skipBytes);
+
+                // Ensure previous player is stopped before creating a new one
+                if (advancedPlayer != null) {
+                    advancedPlayer.close();
+                }
+
+                advancedPlayer = new AdvancedPlayer(fileInputStream); //Create a new AdvancedPlayer object which will be used to play the song
+                advancedPlayer.setPlayBackListener(this);
+                songFinished = false;
+
+                playerThread = new Thread(() -> {
+                    try {
+                        startPlaybackSliderThread();
+                        advancedPlayer.play();
+                    } catch (Exception e) {
+                        System.out.println("Error playing song");
+                        e.printStackTrace();
+
+                    }
+                });
+                playerThread.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadPlaylist(File playlistFile) {
+        stopSong();  // Ensure any currently playing song is stopped
+        playlist.clear();
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(playlistFile))) { //used for reading lines of text from a file
+            String songPath;
+            while ((songPath = bufferedReader.readLine()) != null) {
+                Song song = new Song(songPath);
+                playlist.add(song);
+            }
+        } catch (IOException e) { //IOException is thrown when an input or output operation is failed or interpreted
+            JOptionPane.showMessageDialog(mainFrame, "Error reading playlist file", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        if (!playlist.isEmpty()) {
+            currentPlaylistIndex = 0;
+            loadSong(playlist.get(currentPlaylistIndex));  // Load and play the first song
+            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong);
+        }
+    }
+
+    /**
+     * Ova metode sluzi za pokretanje niti koja ce azurirati vrijeme pjesme u sekundama.
+     * Metoda se koristi za azuriranje slajdera za reprodukciju na korisnickom sucelju.
+     * Metoda se koristi za azuriranje trenutnog vremena u milisekundama.
+     * Thread je pokrenut dok se pjesma ne pauzira, dok se ne zavrsi pjesma, dok se ne pritisne sljedeca ili prethodna pjesma.
+     * Thread se takodjer koristi za azuriranje slajdera za reprodukciju.
+     *
+     */
+
+    private void startPlaybackSliderThread() {
+        if (playbackSliderThread != null && playbackSliderThread.isAlive()) {
+            playbackSliderThread.interrupt();
+        }
+
+        playbackSliderThread = new Thread(() -> { //nit koja se koristi za azuriranje slajdera za reprodukciju
+            while (!isPaused && !songFinished && !pressedNext && !pressedPrev) { //ako nije pauzirano, ako pjesma nije zavrsena, ako nije pritisnuta sljedeca ili prethodna pjesma
+                synchronized (playSignal) { //sinkronizacija
+                    try {
+                        // Update the current time in milliseconds
+                        currentTimeInMilliseconds += 1000;
+
+                        // Update the slider value on the UI thread
+                        SwingUtilities.invokeLater(() -> mainFrame.getToolBar().setPlaybackSliderValue(getPlaybackPositionInSeconds()));
+
+                        // Sleep for 1 second
+                        playSignal.wait(1000);
+                    } catch (InterruptedException e) {
+                        System.out.println("Thread interrupted");
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("Error updating playback slider");
+                    }
+                }
+            }
+        });
+        playbackSliderThread.start();
+    }
+
+
+    /**
+     * This method is used to seek to a specific time in the song.
+     * It stops the current song, sets the new time in milliseconds and plays the song from the new time.
+     * The new time is calculated in milliseconds and is within the duration of the song.
+     *
+     * @param seconds
+     */
+
 
     public void seekTo(int seconds) {
         try {
@@ -245,6 +283,8 @@ public class MusicPlayer extends PlaybackListener implements Functions {
                 stopSong();
 
                 int newTimeInMilliseconds = Math.min(seconds * 1000, currentSong.getDurationInSeconds() * 1000);
+                // Convert seconds to milliseconds and ensure it is within the song duration
+                //min is used to ensure that the new time in milliseconds is not greater than the duration of the song
 
                 setCurrentTimeInMilliseconds(newTimeInMilliseconds);
 

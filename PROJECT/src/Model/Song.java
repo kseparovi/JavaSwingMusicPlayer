@@ -60,11 +60,41 @@ public class Song {
         }
     }
 
+    // Getters
+    public String getSongTitle() {
+        return songTitle;
+    }
+
+    public String getSongArtist() {
+        return songArtist;
+    }
+
+
+    public String getAlbumArtPath() {
+        return albumArtPath;
+    }
+
+
+    public String getFile() {
+        return filePath;
+    }
+
+
+    public int getDurationInSeconds() {
+        return (int) mp3File.getLengthInSeconds();
+    }
+
+    public int getFrameLength() {
+        return mp3File.getFrameCount();
+    }
+
+
     private String convertToSongLengthFormat() {
         long minutes = mp3File.getLengthInSeconds() / 60;
         long seconds = mp3File.getLengthInSeconds() % 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
+
 
     private String extractAlbumArt(Tag tag) {
         try {
@@ -84,67 +114,5 @@ public class Song {
         return null;
     }
 
-    // Getters
-    public String getSongTitle() {
-        return songTitle;
-    }
 
-    public String getSongArtist() {
-        return songArtist;
-    }
-
-    public String getSongLength() {
-        return songLength;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public Mp3File getMp3File() {
-        return mp3File;
-    }
-
-    public double getFrameRatePerMilliseconds() {
-        return frameRatePerMilliseconds;
-    }
-
-    public String getAlbumArtPath() {
-        return albumArtPath;
-    }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public String getArtist() {
-        return songArtist;
-    }
-
-    public String getTitle() {
-        return songTitle;
-    }
-
-    public String getFile() {
-        return filePath;
-    }
-
-
-    public int getDurationInSeconds() {
-        return (int) mp3File.getLengthInSeconds();
-    }
-
-
-    public int getFrameCount() {
-        return mp3File.getFrameCount();
-    }
-
-
-    public Object getFrameSize() {
-        return mp3File.getFrameCount();
-    }
-
-    public int getFrameLength() {
-        return mp3File.getFrameCount();
-    }
 }

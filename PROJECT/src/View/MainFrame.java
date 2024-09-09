@@ -7,6 +7,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
+/**
+ * MainFrame klasa predstavlja glavni prozor aplikacije.
+ * MainFrame sadrzi ViewPanel, MusicPlayer, ToolBar i MenuBar.
+ */
+
 
 public class MainFrame extends JFrame {
 
@@ -49,9 +54,24 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
+    // Getters
+    public ToolBar getToolBar() {
+
+        return toolBar;
+    }
+
+
+    public MainFrame getViewPanel() {
+        return this;
+    }
+
+
+
+
     //Methods
 
     public void updateSongTitleAndArtist(Song song) {
+        // Update the song title, artist, and album art in the view panel
         viewPanel.updateSongDetails(song.getSongArtist(), song.getSongTitle(), song.getAlbumArtPath());
     }
 
@@ -64,9 +84,6 @@ public class MainFrame extends JFrame {
         toolBar.enablePauseButtonDisablePlayButton();
     }
 
-    public void setPlaybackSliderValue(int seconds) {
-        toolBar.setPlaybackSliderValue(seconds);
-    }
 
     public void loadPlaylist(File selectedFile) {
         musicPlayer.loadPlaylist(selectedFile);
@@ -75,11 +92,5 @@ public class MainFrame extends JFrame {
         musicPlayer.playSong();
     }
 
-    public ToolBar getToolBar() {
-        return toolBar;
-    }
 
-    public MainFrame getViewPanel() {
-        return this;
-    }
 }
