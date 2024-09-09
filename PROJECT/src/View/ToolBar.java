@@ -20,7 +20,7 @@ public class ToolBar extends JToolBar {
     private Timer playbackTimer;
 
     private final Color TEXT_COLOR = Color.WHITE;
-    private boolean isDragging = false;
+
 
     // Constructor
     public ToolBar(MainFrame mainFrame, MusicPlayer musicPlayer) {
@@ -172,7 +172,4 @@ public class ToolBar extends JToolBar {
         }
     }
 
-    public void resetPlaybackSlider() {
-        playbackSlider.setValue(0);
-    }
 }

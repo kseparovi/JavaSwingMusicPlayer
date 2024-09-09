@@ -9,6 +9,11 @@ import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * This class handles the playback of songs using the JLAYER library.
+ * It extends PlaybackListener to listen to playback events.
+ * Implements the Functions interface for basic music control functions.
+ */
 public class MusicPlayer extends PlaybackListener implements Functions {
 
     // Fields
@@ -23,7 +28,7 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     private boolean pressedNext, pressedPrev;
     private int currentTimeInMilliseconds;
     private Thread playbackSliderThread;
-    private Thread playerThread;  // Added field to manage the playback thread
+    private Thread playerThread;
 
     // Constructor
     public MusicPlayer(MainFrame mainFrame) {
@@ -52,6 +57,7 @@ public class MusicPlayer extends PlaybackListener implements Functions {
         if (currentSong != null) {
             currentTimeInMilliseconds = 0;
             mainFrame.getViewPanel().setPlaybackSliderValue(0);
+            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong); // Update song title and artist
             playCurrentSong();
         }
     }
@@ -59,14 +65,16 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     public void playCurrentSong() {
         try {
             if (currentSong != null) {
-                // Log to ensure the method is not called multiple times
-                System.out.println("Attempting to play song: " + currentSong.getFile());
+                // Guard to check if the player is already playing
+                if (playerThread != null && playerThread.isAlive()) {
+                    playerThread.interrupt();  // Interrupt the current player thread
+                }
 
                 FileInputStream fileInputStream = new FileInputStream(currentSong.getFile());
 
                 long skipBytes = (long) ((currentTimeInMilliseconds / (double) currentSong.getDurationInSeconds()) * currentSong.getFrameLength());
 
-                // Ensure skipBytes is within valid range
+                // Ensure skipBytes is within a valid range
                 if (skipBytes < 0) {
                     skipBytes = 0;
                 } else if (skipBytes > fileInputStream.available()) {
@@ -83,11 +91,6 @@ public class MusicPlayer extends PlaybackListener implements Functions {
                 advancedPlayer = new AdvancedPlayer(fileInputStream);
                 advancedPlayer.setPlayBackListener(this);
                 songFinished = false;
-
-                // Ensure only one thread is started
-                if (playerThread != null && playerThread.isAlive()) {
-                    playerThread.interrupt();
-                }
 
                 playerThread = new Thread(() -> {
                     try {
@@ -165,20 +168,20 @@ public class MusicPlayer extends PlaybackListener implements Functions {
             playbackSliderThread.interrupt();
         }
 
-        // Ensure the player thread is stopped
+        // Stop the player thread
         if (playerThread != null && playerThread.isAlive()) {
             playerThread.interrupt();
         }
     }
 
     @Override
-    public void nextSong() {
-        pressedNext = true;
+    public void nextSong() {  // Move to the next song in the playlist
         if (playlist != null && !playlist.isEmpty()) {
             currentPlaylistIndex = (currentPlaylistIndex + 1) % playlist.size();
             loadSong(playlist.get(currentPlaylistIndex));
+            mainFrame.getViewPanel().updateSongTitleAndArtist(currentSong); // Update song title and artist
+            playCurrentSong();  // Ensure the next song starts playing automatically
         }
-        pressedNext = false;
     }
 
     @Override
@@ -192,6 +195,10 @@ public class MusicPlayer extends PlaybackListener implements Functions {
     }
 
     private void startPlaybackSliderThread() {
+        if (playbackSliderThread != null && playbackSliderThread.isAlive()) {
+            playbackSliderThread.interrupt();
+        }
+
         playbackSliderThread = new Thread(() -> {
             while (!isPaused && !songFinished && !pressedNext && !pressedPrev) {
                 synchronized (playSignal) {
@@ -200,15 +207,15 @@ public class MusicPlayer extends PlaybackListener implements Functions {
                         currentTimeInMilliseconds += 1000;
 
                         // Update the slider value on the UI thread
-                        SwingUtilities.invokeLater(() -> mainFrame.getViewPanel().setPlaybackSliderValue(getPlaybackPositionInSeconds()));
+                        SwingUtilities.invokeLater(() -> mainFrame.getToolBar().setPlaybackSliderValue(getPlaybackPositionInSeconds()));
 
                         // Sleep for 1 second
                         playSignal.wait(1000);
                     } catch (InterruptedException e) {
-                        // Handle thread interruption, likely from stopSong()
                         return;
                     } catch (Exception e) {
                         e.printStackTrace();
+                        System.out.println("Error updating playback slider");
                     }
                 }
             }
@@ -218,33 +225,29 @@ public class MusicPlayer extends PlaybackListener implements Functions {
 
     @Override
     public void playbackStarted(PlaybackEvent evt) {
-        System.out.println("Playback Started - " + evt.getFrame());
+        System.out.println("Playback Started");
         songFinished = false;
     }
 
     @Override
     public void playbackFinished(PlaybackEvent evt) {
-        System.out.println("Playback Finished - " + evt.getFrame());
-
-        if (isPaused) {
-            currentTimeInMilliseconds += evt.getFrame();  // Update time with the last frame played
-        } else if (!pressedNext && !pressedPrev && !songFinished) {
+        if (!isPaused && !pressedNext && !pressedPrev) {
+            // Automatically play the next song if not paused or if next/prev buttons are not pressed
             nextSong();
+        } else if (isPaused) {
+            currentTimeInMilliseconds += evt.getFrame();
         }
     }
 
     public void seekTo(int seconds) {
         try {
             if (currentSong != null) {
-                stopSong();  // Stop current playback
+                stopSong();
 
-                // Calculate the new time position in milliseconds
                 int newTimeInMilliseconds = Math.min(seconds * 1000, currentSong.getDurationInSeconds() * 1000);
 
-                // Update the current time
                 setCurrentTimeInMilliseconds(newTimeInMilliseconds);
 
-                // Restart the song from the new position
                 playCurrentSong();
             }
         } catch (Exception e) {
